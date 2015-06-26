@@ -17,11 +17,11 @@ import re
 from glob import glob
 
 
-class Cluster(Plugin, RedHatPlugin):
-    """Red Hat Cluster High Availability and GFS2
+class Cman(Plugin, RedHatPlugin):
+    """cman based Red Hat Cluster High Availability
     """
 
-    plugin_name = 'cluster'
+    plugin_name = 'cman'
     profiles = ('cluster',)
 
     packages = [
@@ -45,25 +45,25 @@ class Cluster(Plugin, RedHatPlugin):
             "/etc/cluster",
             "/etc/sysconfig/cluster",
             "/etc/sysconfig/cman",
+            "/var/log/cluster",
             "/etc/fence_virt.conf",
             "/var/lib/ricci",
             "/var/lib/luci/data/luci.db",
             "/var/lib/luci/etc",
-            "/var/log/cluster",
-            "/var/log/luci",
+            "/var/log/luci"
         ])
 
         self.add_cmd_output([
-            "rg_test test /etc/cluster/cluster.conf",
-            "fence_tool ls -n",
-            "clustat",
-            "group_tool dump",
             "cman_tool services",
             "cman_tool nodes",
             "cman_tool status",
             "ccs_tool lsnode",
+            "mkqdisk -L",
+            "group_tool dump",
             "fence_tool dump",
-            "mkqdisk -L"
+            "fence_tool ls -n",
+            "clustat",
+            "rg_test test /etc/cluster/cluster.conf"
         ])
 
     def postproc(self):
