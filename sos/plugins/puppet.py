@@ -1,4 +1,3 @@
-# Copyright (C) 2014 Red Hat, Inc. Bryn M. Reeves <bmr@redhat.com>
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -14,22 +13,31 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from sos.plugins import Plugin, RedHatPlugin, DebianPlugin, UbuntuPlugin
+from glob import glob
 
 
-class Hpasm(Plugin, RedHatPlugin, DebianPlugin, UbuntuPlugin):
-    """HP Advanced Server Management
+class Puppet(Plugin, RedHatPlugin, DebianPlugin, UbuntuPlugin):
+    """Puppet service
     """
 
-    plugin_name = 'hpasm'
-    profiles = ('system', 'hardware')
-
-    packages = ('hp-health',)
+    plugin_name = 'puppet'
+    profiles = ('services',)
 
     def setup(self):
-        self.add_copy_spec("/var/log/hp-health/hpasmd.log")
-        self.add_cmd_output([
-            "hpasmcli -s 'show asr'",
-            "hpasmcli -s 'show server'"
-        ], timeout=0)
+        self.add_copy_spec([
+            "/etc/puppet/*.conf",
+            "/etc/puppet/rack/*",
+            "/etc/puppet/manifests/*",
+            "/var/log/puppet/*.log",
+        ])
 
+    def postproc(self):
+        for device_conf in glob("/etc/puppet/device.conf*"):
+            self.do_file_sub(
+                device_conf,
+                r"(.*url*.ssh://.*:).*(@.*)",
+                r"\1%s\2" % ('***')
+            )
+
+        return
 # vim: et ts=4 sw=4
